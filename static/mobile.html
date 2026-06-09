@@ -500,9 +500,49 @@
         if (!results.length) {
           return "亲爱的，这个问题我这边暂时没有在资料库里找到足够依据。为了避免回复不准确，建议先补充相关资料，或者让一对一导师确认后再回复客户。";
         }
+        const normalizedQuestion = normalizeText(question);
         const evidence = results.map((item) => item.snippet).join(" ");
         if (highRisk) {
+          if (normalizedQuestion.includes("头晕") || normalizedQuestion.includes("恶心") || normalizedQuestion.includes("心慌")) {
+            return "亲爱的，看到你说有头晕、恶心，我先帮你一起看一下。辟谷前期身体会从糖代谢慢慢转向脂肪代谢，不进食时体内糖分不足，有时会出现头晕、恶心、乏力这类反应。你现在先坐下或躺下休息，起身动作慢一点，按要求喝温水；如果不舒服比较明显，或者伴随心慌、出冷汗、持续恶心，就不要硬扛，要及时咨询医生，同时把情况同步给一对一导师，我们再判断是否适合继续。";
+          }
+          if (normalizedQuestion.includes("胃不好") || normalizedQuestion.includes("胃炎") || normalizedQuestion.includes("胃溃疡") || normalizedQuestion.includes("胃痛")) {
+            return "亲爱的，胃不好要先看具体情况。如果只是平时脾胃弱、容易胀、消化慢，可以把你的具体情况发我，我帮你同步老师评估；但如果有胃溃疡、胃出血、正在吃胃药，或者最近胃痛明显，就不建议自己直接开始。我们先稳妥一点，最好先问医生，再结合老师建议判断是否适合。";
+          }
           return `亲爱的，这个情况可能涉及身体基础情况、用药或明显不适，我先不建议你自己直接决定。${evidence} 建议先咨询医生，同时同步一对一导师，我们再结合你的身体情况判断是否适合继续。`;
+        }
+
+        if (
+          normalizedQuestion.includes("辟谷是什么") ||
+          normalizedQuestion.includes("市面") ||
+          normalizedQuestion.includes("区别")
+        ) {
+          return "亲爱的，辟谷简单理解就是在一段时间内减少五谷和日常饮食摄入，让肠胃休息，同时帮助身体调整代谢状态。我们家的辟谷不是市面上那种单纯不吃、硬饿的方式，更接近服饵辟谷，也就是配合膏滋、药食同源食材和老师跟进来做。它不是让你硬扛，而是在减少主食摄入的同时，给身体一定营养和能量支持，帮助祛湿、调脾胃、补气血，整体会更温和，也更适合现代人的生活节奏。";
+        }
+
+        if (
+          normalizedQuestion.includes("顽固性肥胖") ||
+          normalizedQuestion.includes("很多种方式") ||
+          normalizedQuestion.includes("无效")
+        ) {
+          return "亲爱的，顽固性肥胖很多时候不只是吃得多，也可能和湿气重、脾胃运化差、代谢慢有关。辟谷这套思路不是单纯少吃，而是通过减少摄入、让脾胃休息、配合膏滋祛湿和调理代谢，让身体慢慢切换到消耗自身多余脂肪的状态。你这种试过很多方法都不理想的情况，可以先从体验开始，但要按流程喝水、喝膏、打卡，有任何不舒服及时反馈，我会帮你同步老师一起调整。";
+        }
+
+        if (normalizedQuestion.includes("反弹") || normalizedQuestion.includes("瘦下来")) {
+          return "亲爱的，反弹一般不是无缘无故的，很多都和复食阶段有没有按要求来有关。比如复食太快、吃得太油太咸、量没有控制好，或者偷偷吃了食谱外的东西，都容易让体重波动。我们这边会特别重视复食，不是瘦完就不管了；只要辟谷期间按流程做，复食期也跟着老师一步步恢复饮食，通常会比单纯节食更稳。后面如果体重有波动，你把吃了什么、几点吃、体重变化发我，我帮你一起排查。";
+        }
+
+        if (
+          normalizedQuestion.includes("嘴巴") ||
+          normalizedQuestion.includes("味道") ||
+          normalizedQuestion.includes("口臭") ||
+          normalizedQuestion.includes("舌苔")
+        ) {
+          return "亲爱的，辟谷期间嘴巴味道重、口苦、口臭、舌苔变厚，这个比较常见。资料里一般把它理解为身体在排湿浊、代谢废物时出现的口腔反应，通常 2 到 3 天会慢慢缓解。缓解的话，你可以早晚刷牙时轻轻刷一下舌苔，也可以用清新口气的漱口水；水温不要太烫也不要太冷，继续按要求喝水。要是牙龈出血、牙疼、咽喉特别不舒服，就及时发我，我帮你同步老师看一下。";
+        }
+
+        if (normalizedQuestion.includes("减肥") && normalizedQuestion.includes("原理")) {
+          return "亲爱的，辟谷减肥的核心不是“饿瘦”，而是让身体从依赖外来食物供能，逐步切换到动用自身储存的糖原和脂肪供能。前期身体会先消耗糖原和水分，所以体重下降会明显一些；坚持到后面，身体会更多进入脂肪供能状态。再加上膏滋配合祛湿、调脾胃、补气血，帮助代谢变顺，所以它不是单纯节食，而是一套减少摄入、调理代谢、规范复食的体重管理方式。";
         }
         return `亲爱的，根据资料可以这样回复：${evidence} 你先按这个方向和客户沟通，有任何不舒服或不确定的地方，及时同步一对一导师确认。`;
       }
