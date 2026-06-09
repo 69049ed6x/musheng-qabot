@@ -1,4 +1,4 @@
-const CACHE_NAME = "musheng-mobile-v1";
+const CACHE_NAME = "musheng-mobile-v2";
 const ASSETS = ["./mobile.html", "./kb.json", "./manifest.webmanifest"];
 
 self.addEventListener("install", (event) => {
