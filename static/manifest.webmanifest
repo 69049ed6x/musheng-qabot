@@ -1,0 +1,9 @@
+{
+  "name": "沐笙清谷手机问答",
+  "short_name": "清谷问答",
+  "start_url": "./mobile.html",
+  "display": "standalone",
+  "background_color": "#f7f4ec",
+  "theme_color": "#0d5f44",
+  "icons": []
+}
