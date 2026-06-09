@@ -1,0 +1,8 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+data/kb.sqlite3
+output/
+_tmp_docx/
+_tmp_api_assets/
+data/sources/
