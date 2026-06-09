@@ -1,0 +1,683 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0d5f44" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <title>沐笙清谷手机问答</title>
+    <style>
+      :root {
+        --bg: #f7f4ec;
+        --panel: #fffdf8;
+        --ink: #17241d;
+        --muted: #69746d;
+        --line: #ded5c4;
+        --leaf: #0d5f44;
+        --leaf-dark: #073927;
+        --gold: #b7892b;
+        --danger: #9d3429;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        color: var(--ink);
+        background: var(--bg);
+        font-family: "Microsoft YaHei", "Noto Sans SC", system-ui, sans-serif;
+      }
+
+      .app {
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        min-height: 100vh;
+      }
+
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        border-bottom: 1px solid var(--line);
+        background: rgba(255, 253, 248, 0.96);
+        padding: 14px 16px 12px;
+      }
+
+      .topbar {
+        align-items: center;
+        display: flex;
+        gap: 10px;
+        justify-content: space-between;
+      }
+
+      h1 {
+        color: var(--leaf-dark);
+        font-size: 19px;
+        letter-spacing: 0;
+        line-height: 1.2;
+        margin: 0;
+      }
+
+      .pill {
+        border: 1px solid rgba(13, 95, 68, 0.25);
+        border-radius: 999px;
+        color: var(--leaf-dark);
+        font-size: 12px;
+        padding: 5px 9px;
+        white-space: nowrap;
+      }
+
+      .settings {
+        display: grid;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .settings[hidden] {
+        display: none;
+      }
+
+      label {
+        color: var(--muted);
+        display: grid;
+        font-size: 12px;
+        gap: 5px;
+      }
+
+      input,
+      textarea,
+      button {
+        font: inherit;
+      }
+
+      input,
+      textarea {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        color: var(--ink);
+        line-height: 1.5;
+        padding: 11px 12px;
+        width: 100%;
+      }
+
+      input:focus,
+      textarea:focus {
+        border-color: var(--leaf);
+        outline: 2px solid rgba(13, 95, 68, 0.16);
+      }
+
+      .settings-actions,
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      button {
+        border: 0;
+        border-radius: 8px;
+        cursor: pointer;
+        min-height: 40px;
+        padding: 9px 12px;
+      }
+
+      .primary {
+        background: var(--leaf-dark);
+        color: #fff;
+        font-weight: 700;
+      }
+
+      .secondary,
+      .chip {
+        background: #fff;
+        border: 1px solid var(--line);
+        color: var(--leaf-dark);
+      }
+
+      .chip {
+        font-size: 13px;
+        min-height: 34px;
+        padding: 7px 10px;
+      }
+
+      .conversation {
+        overflow: auto;
+        padding: 16px;
+      }
+
+      .message {
+        display: grid;
+        gap: 8px;
+        margin: 0 0 16px;
+      }
+
+      .message.user {
+        justify-items: end;
+      }
+
+      .bubble {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        line-height: 1.75;
+        max-width: min(92vw, 760px);
+        padding: 13px 14px;
+        white-space: pre-wrap;
+      }
+
+      .bot .bubble {
+        background: var(--panel);
+      }
+
+      .user .bubble {
+        background: var(--leaf);
+        border-color: var(--leaf);
+        color: #fff;
+      }
+
+      .meta,
+      .source {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.55;
+        max-width: min(92vw, 760px);
+      }
+
+      .source {
+        border-left: 3px solid var(--gold);
+        padding: 4px 9px;
+      }
+
+      .risk {
+        border-left-color: var(--danger);
+        color: var(--danger);
+        font-weight: 700;
+      }
+
+      form {
+        border-top: 1px solid var(--line);
+        background: rgba(255, 253, 248, 0.96);
+        display: grid;
+        gap: 10px;
+        padding: 10px 12px max(12px, env(safe-area-inset-bottom));
+      }
+
+      .input-row {
+        align-items: end;
+        display: grid;
+        gap: 8px;
+        grid-template-columns: 1fr 74px;
+      }
+
+      #message {
+        max-height: 132px;
+        min-height: 48px;
+        resize: vertical;
+      }
+
+      .tiny {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.5;
+      }
+
+      @media (min-width: 820px) {
+        header,
+        form {
+          padding-left: calc((100vw - 820px) / 2 + 16px);
+          padding-right: calc((100vw - 820px) / 2 + 16px);
+        }
+
+        .conversation {
+          padding-left: calc((100vw - 820px) / 2 + 16px);
+          padding-right: calc((100vw - 820px) / 2 + 16px);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header>
+        <div class="topbar">
+          <h1>沐笙清谷手机问答</h1>
+          <button class="secondary" id="toggle-settings" type="button">API 设置</button>
+        </div>
+        <div class="settings" id="settings">
+          <label>
+            API URL
+            <input id="api-url" autocomplete="off" placeholder="填写 API URL" />
+          </label>
+          <label>
+            模型名称
+            <input id="model-name" autocomplete="off" placeholder="填写模型名称" />
+          </label>
+          <label>
+            API Key
+            <input id="api-key" autocomplete="off" placeholder="填写自己的 API Key" type="password" />
+          </label>
+          <div class="settings-actions">
+            <button class="primary" id="save-settings" type="button">保存到本机</button>
+            <button class="secondary" id="clear-settings" type="button">清空</button>
+            <span class="pill" id="kb-status">知识库加载中</span>
+          </div>
+          <div class="tiny">配置只保存在当前手机浏览器本地，不会写入网页文件。若 API 不支持浏览器跨域请求，需要改用代理版本。</div>
+        </div>
+      </header>
+
+      <main class="conversation" id="conversation">
+        <div class="message bot">
+          <div class="bubble">你好，我会先在手机本地知识库检索，再用你填写的模型生成客服回复。请先填写 API URL、模型名称和 API Key。</div>
+        </div>
+      </main>
+
+      <form id="chat-form">
+        <div class="chips">
+          <button class="chip" type="button">辟谷是什么？和市面上有什么区别？</button>
+          <button class="chip" type="button">胃不好可以辟谷吗？</button>
+          <button class="chip" type="button">辟谷第三天头晕恶心怎么办？</button>
+        </div>
+        <div class="input-row">
+          <textarea id="message" placeholder="输入客户问题"></textarea>
+          <button class="primary" id="send" type="submit">发送</button>
+        </div>
+      </form>
+    </div>
+
+    <script>
+      const STORAGE_KEY = "musheng-mobile-settings-v1";
+      const HISTORY_LIMIT = 8;
+      const RISK_KEYWORDS = [
+        "孕",
+        "哺乳",
+        "糖尿病",
+        "心脏病",
+        "癌",
+        "癫痫",
+        "手术",
+        "出血",
+        "服药",
+        "药物",
+        "低血糖",
+        "高血压",
+        "低血压",
+        "胃溃疡",
+        "治疗",
+        "诊断",
+        "医生",
+        "心慌",
+        "恶心",
+        "头晕",
+        "头疼",
+        "严重",
+        "不舒服",
+      ];
+      const STRONG_TERMS = [
+        "糖尿病",
+        "胃溃疡",
+        "孕妇",
+        "哺乳",
+        "服药",
+        "高血压",
+        "低血糖",
+        "偷吃",
+        "复食",
+        "反弹",
+        "头晕",
+        "恶心",
+        "口臭",
+        "舌苔",
+        "喝水",
+        "经期",
+        "疲劳",
+        "乏力",
+        "身体酸痛",
+        "红糖水",
+        "蜂蜜水",
+        "三天",
+        "3天",
+        "Nature",
+        "禁食",
+        "断食",
+        "服气",
+        "服饵",
+        "饿瘦",
+        "补气养血",
+        "药食同源",
+        "中山七院",
+        "膏脂归化",
+        "宿便",
+        "自噬",
+        "辟谷",
+        "减肥",
+        "膏滋",
+        "脾胃",
+        "湿气",
+      ];
+      const ALIASES = {
+        三天: ["3天", "至少3天", "至少三天", "几天有效"],
+        "3天": ["三天", "至少3天", "至少三天", "几天有效"],
+        口臭: ["口苦", "舌苔", "舌苔厚", "味道重"],
+        舌苔: ["口臭", "舌苔厚", "舌苔黄", "舌苔黑"],
+        禁食: ["断食", "完全禁食", "水禁食"],
+        断食: ["禁食", "完全禁食"],
+        服气: ["服气辟谷", "服饵", "服药辟谷"],
+        服饵: ["服饵辟谷", "服气", "服药辟谷"],
+        饿瘦: ["饿", "脂肪供能", "糖原"],
+        补气养血: ["气血", "脾胃"],
+        胃不好: ["胃溃疡", "胃炎", "胃不舒服"],
+      };
+
+      const conversation = document.querySelector("#conversation");
+      const form = document.querySelector("#chat-form");
+      const input = document.querySelector("#message");
+      const sendButton = document.querySelector("#send");
+      const settingsPanel = document.querySelector("#settings");
+      const toggleSettings = document.querySelector("#toggle-settings");
+      const saveSettingsButton = document.querySelector("#save-settings");
+      const clearSettingsButton = document.querySelector("#clear-settings");
+      const apiUrlInput = document.querySelector("#api-url");
+      const modelInput = document.querySelector("#model-name");
+      const apiKeyInput = document.querySelector("#api-key");
+      const kbStatus = document.querySelector("#kb-status");
+
+      let knowledgeChunks = [];
+      let chatHistory = [];
+
+      function normalizeText(text) {
+        return String(text || "")
+          .toLowerCase()
+          .replace(/[\s，。！？、；：,.!?;:（）()[\]《》<>"'|/\\\-_]+/g, "");
+      }
+
+      function unique(items) {
+        return [...new Set(items.filter(Boolean))];
+      }
+
+      function queryTerms(query) {
+        const normalized = normalizeText(query);
+        const terms = [];
+        STRONG_TERMS.forEach((term) => {
+          const termNorm = normalizeText(term);
+          const aliases = ALIASES[term] || [];
+          if (normalized.includes(termNorm) || aliases.some((alias) => normalized.includes(normalizeText(alias)))) {
+            terms.push(termNorm, ...aliases.map(normalizeText));
+          }
+        });
+        const latin = String(query || "").toLowerCase().match(/[a-z0-9]+/g) || [];
+        terms.push(...latin.filter((term) => term.length >= 2));
+        if (!terms.length) {
+          const cjk = normalized.replace(/[^\u4e00-\u9fff]/g, "");
+          for (let i = 0; i < cjk.length - 1; i += 1) {
+            terms.push(cjk.slice(i, i + 2));
+          }
+        }
+        return unique(terms);
+      }
+
+      function matchedStrongTerms(query) {
+        const normalized = normalizeText(query);
+        const terms = [];
+        STRONG_TERMS.forEach((term) => {
+          const termNorm = normalizeText(term);
+          const aliases = ALIASES[term] || [];
+          if (normalized.includes(termNorm) || aliases.some((alias) => normalized.includes(normalizeText(alias)))) {
+            terms.push(termNorm, ...aliases.map(normalizeText));
+          }
+        });
+        return unique(terms);
+      }
+
+      function splitSentences(text) {
+        return String(text || "")
+          .split(/(?<=[。！？?])/)
+          .map((item) => item.trim())
+          .filter(Boolean);
+      }
+
+      function bestSnippet(content, query, maxLen = 180) {
+        const terms = queryTerms(query);
+        const sentences = splitSentences(content);
+        if (!sentences.length) return String(content || "").slice(0, maxLen);
+        let best = sentences[0];
+        let bestScore = -1;
+        sentences.forEach((sentence) => {
+          const normalized = normalizeText(sentence);
+          const score = terms.reduce((total, term) => total + (normalized.includes(term) ? 1 : 0), 0);
+          if (score > bestScore) {
+            best = sentence;
+            bestScore = score;
+          }
+        });
+        return best.slice(0, maxLen);
+      }
+
+      function scoreChunk(chunk, query) {
+        const normalizedQuery = normalizeText(query);
+        const terms = queryTerms(query);
+        const strongTerms = matchedStrongTerms(query);
+        const title = normalizeText(chunk.title);
+        const content = normalizeText(chunk.content);
+        const combined = `${title}${content}`;
+        let score = 0;
+        if (normalizedQuery && combined.includes(normalizedQuery)) score += 20;
+        if (normalizedQuery && title.includes(normalizedQuery)) score += 40;
+        strongTerms.forEach((term) => {
+          if (title.includes(term)) score += 35;
+          const count = content.split(term).length - 1;
+          if (count > 0) score += Math.min(count, 5) * 12;
+        });
+        const distinct = strongTerms.filter((term) => title.includes(term) || content.includes(term)).length;
+        if (distinct >= 2) score += distinct * 15;
+        terms.forEach((term) => {
+          if (title.includes(term)) score += 4;
+          const count = content.split(term).length - 1;
+          if (count > 0) score += Math.min(count, 5);
+        });
+        if (score > 0 && ["customer_reply", "professional", "image_note"].includes(chunk.kind)) score += 3;
+        return score;
+      }
+
+      function searchKnowledge(query, limit = 5) {
+        return knowledgeChunks
+          .map((chunk) => ({
+            chunk,
+            score: scoreChunk(chunk, query),
+            snippet: bestSnippet(chunk.content, query),
+          }))
+          .filter((item) => item.score > 0 && item.chunk.kind !== "internal_note")
+          .sort((a, b) => b.score - a.score)
+          .slice(0, limit);
+      }
+
+      function needsHumanReview(question) {
+        const normalized = normalizeText(question);
+        return RISK_KEYWORDS.some((keyword) => normalized.includes(normalizeText(keyword)));
+      }
+
+      function draftReply(question, results, highRisk) {
+        if (!results.length) {
+          return "亲爱的，这个问题我这边暂时没有在资料库里找到足够依据。为了避免回复不准确，建议先补充相关资料，或者让一对一导师确认后再回复客户。";
+        }
+        const evidence = results.map((item) => item.snippet).join(" ");
+        if (highRisk) {
+          return `亲爱的，这个情况可能涉及身体基础情况、用药或明显不适，我先不建议你自己直接决定。${evidence} 建议先咨询医生，同时同步一对一导师，我们再结合你的身体情况判断是否适合继续。`;
+        }
+        return `亲爱的，根据资料可以这样回复：${evidence} 你先按这个方向和客户沟通，有任何不舒服或不确定的地方，及时同步一对一导师确认。`;
+      }
+
+      function buildMessages(question, draft, results, highRisk) {
+        const evidence = results
+          .map((item, index) => `${index + 1}. 标题：${item.chunk.title}\n来源：${item.chunk.source}\n内容：${item.snippet || item.chunk.content.slice(0, 400)}`)
+          .join("\n\n");
+        const history = chatHistory
+          .slice(-HISTORY_LIMIT)
+          .map((item) => `${item.role === "user" ? "客户" : "客服"}：${item.content.slice(0, 260)}`)
+          .join("\n") || "无";
+        return [
+          {
+            role: "system",
+            content:
+              "你是沐笙清谷客服回复助手。你必须根据资料依据和规则草稿，生成可直接发给客户的中文回复。专业知识不得编造；不得承诺治疗、诊断、治愈、保证效果；疾病、用药、孕哺、严重不适时必须提醒先咨询医生并同步一对一导师。语气温和亲切，像真人客服，避免论文腔。只输出客服回复正文。",
+          },
+          {
+            role: "user",
+            content: `客户问题：\n${question}\n\n是否高风险：${highRisk ? "是" : "否"}\n\n本次之前上下文：\n${history}\n\n规则草稿：\n${draft}\n\n资料依据：\n${evidence || "无"}\n\n请输出一段可直接发给客户的客服回复。`,
+          },
+        ];
+      }
+
+      async function callLlm(messages) {
+        const settings = readSettings();
+        if (!settings.apiUrl || !settings.model || !settings.apiKey) {
+          throw new Error("请先填写 API URL、模型名称和 API Key。");
+        }
+        const endpoint = `${settings.apiUrl.replace(/\/$/, "")}/chat/completions`;
+        const response = await fetch(endpoint, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${settings.apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: settings.model,
+            messages,
+            temperature: 0.2,
+            max_tokens: 700,
+          }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(data.error?.message || data.message || `API 请求失败：${response.status}`);
+        }
+        const content = data.choices?.[0]?.message?.content;
+        if (!content) throw new Error("API 没有返回有效回答。");
+        return content.trim();
+      }
+
+      function readSettings() {
+        return {
+          apiUrl: apiUrlInput.value.trim(),
+          model: modelInput.value.trim(),
+          apiKey: apiKeyInput.value.trim(),
+        };
+      }
+
+      function loadSettings() {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        try {
+          const settings = JSON.parse(raw);
+          apiUrlInput.value = settings.apiUrl || "";
+          modelInput.value = settings.model || "";
+          apiKeyInput.value = settings.apiKey || "";
+        } catch {
+          localStorage.removeItem(STORAGE_KEY);
+        }
+      }
+
+      function saveSettings() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(readSettings()));
+        addMessage("bot", "API 设置已保存到当前手机浏览器。", [], false, null);
+      }
+
+      function clearSettings() {
+        apiUrlInput.value = "";
+        modelInput.value = "";
+        apiKeyInput.value = "";
+        localStorage.removeItem(STORAGE_KEY);
+        addMessage("bot", "API 设置已清空。", [], false, null);
+      }
+
+      function addMessage(role, text, sources = [], needsHuman = false, usedLlm = null) {
+        const wrapper = document.createElement("div");
+        wrapper.className = `message ${role}`;
+        const bubble = document.createElement("div");
+        bubble.className = "bubble";
+        bubble.textContent = text;
+        wrapper.appendChild(bubble);
+        if (role === "bot" && usedLlm !== null) {
+          const meta = document.createElement("div");
+          meta.className = "meta";
+          meta.textContent = usedLlm ? "LLM 已参与本次回复" : "未调用 LLM，使用本地检索草稿";
+          wrapper.appendChild(meta);
+        }
+        if (needsHuman) {
+          const risk = document.createElement("div");
+          risk.className = "source risk";
+          risk.textContent = "建议医生/一对一导师确认后再回复。";
+          wrapper.appendChild(risk);
+        }
+        sources.slice(0, 3).forEach((source) => {
+          const item = document.createElement("div");
+          item.className = "source";
+          item.textContent = `${source.chunk.title} / ${source.chunk.source}: ${source.snippet}`;
+          wrapper.appendChild(item);
+        });
+        conversation.appendChild(wrapper);
+        conversation.scrollTop = conversation.scrollHeight;
+      }
+
+      async function ask(message) {
+        sendButton.disabled = true;
+        const results = searchKnowledge(message, 5);
+        const highRisk = needsHumanReview(message);
+        const draft = draftReply(message, results, highRisk);
+        let answer = draft;
+        let usedLlm = false;
+        try {
+          answer = await callLlm(buildMessages(message, draft, results, highRisk));
+          usedLlm = true;
+        } catch (error) {
+          answer = `${draft}\n\n提示：${error.message}`;
+        } finally {
+          addMessage("bot", answer, results, highRisk, usedLlm);
+          chatHistory.push({ role: "user", content: message });
+          chatHistory.push({ role: "assistant", content: answer });
+          if (chatHistory.length > 16) chatHistory = chatHistory.slice(-16);
+          sendButton.disabled = false;
+          input.focus();
+        }
+      }
+
+      async function loadKnowledge() {
+        try {
+          const response = await fetch("./kb.json", { cache: "no-store" });
+          const data = await response.json();
+          knowledgeChunks = Array.isArray(data.chunks) ? data.chunks : [];
+          kbStatus.textContent = `知识库 ${knowledgeChunks.length} 条`;
+        } catch (error) {
+          kbStatus.textContent = "知识库加载失败";
+          addMessage("bot", `知识库加载失败：${error.message}`);
+        }
+      }
+
+      toggleSettings.addEventListener("click", () => {
+        settingsPanel.hidden = !settingsPanel.hidden;
+      });
+      saveSettingsButton.addEventListener("click", saveSettings);
+      clearSettingsButton.addEventListener("click", clearSettings);
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const message = input.value.trim();
+        if (!message) return;
+        addMessage("user", message);
+        input.value = "";
+        ask(message);
+      });
+      document.querySelectorAll(".chip").forEach((chip) => {
+        chip.addEventListener("click", () => {
+          input.value = chip.textContent;
+          form.requestSubmit();
+        });
+      });
+
+      loadSettings();
+      loadKnowledge();
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("./sw.js").catch(() => {});
+      }
+    </script>
+  </body>
+</html>
